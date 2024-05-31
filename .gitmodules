@@ -1,0 +1,12 @@
+[submodule ".github/local-actions/actions/github-script"]
+	path = .github/local-actions/actions/github-script
+	url = https://github.com/actions/github-script.git
+	branch = v6
+[submodule ".github/local-actions/terraform/setup-terraform"]
+	path = .github/local-actions/terraform/setup-terraform
+	url = https://github.com/hashicorp/setup-terraform.git
+	branch = v2
+[submodule ".github/local-actions/reviewdog/action-tflint"]
+	path = .github/local-actions/reviewdog/action-tflint
+	url = https://github.com/reviewdog/action-tflint.git
+	branch = v1
