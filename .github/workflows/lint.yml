@@ -1,0 +1,71 @@
+name: Terraform lint
+on: 
+  pull_request:
+    types: [opened, edited]
+jobs:
+  terraform-format:
+    runs-on: self-hosted
+    name: Check terraform files formatting
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Terraform
+        uses: ./.github/local-actions/terraform/setup-terraform
+        with:
+          terraform_version: 1.8.4
+
+      - name: Terraform fmt
+        id: fmt
+        working-directory: terraform
+        run: terraform fmt --check --diff
+        continue-on-error: true
+
+      - name: Terraform init
+        id: init
+        working-directory: terraform
+        run: terraform init
+        continue-on-error: true
+
+      - name: Tflint check
+        id: tflint
+        uses: ./.github/local-actions/reviewdog/action-tflint
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: "terraform"
+          fail_on_error: "false"
+          filter_mode: "nofilter"
+          reporter: github-pr-review
+
+      - uses: ./.github/local-actions/actions/github-script
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+
+            <details><summary>Format Output</summary>
+
+            \`\`\`\n
+            ${{ steps.fmt.outputs.stdout }}
+            \`\`\`
+
+            </details>
+            
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*
+            `;
+              
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Fail on error
+        if: ${{ steps.fmt.outcome }} || ${{ steps.tflint.outputs.tflint-return-code }}
+        uses: ./.github/local-actions/actions/github-script
+        with:
+          script: |
+              core.setFailed('Terraform format or lint error, please fix.')            
