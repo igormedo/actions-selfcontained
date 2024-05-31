@@ -1,5 +1,5 @@
 name: Terraform lint
-on: 
+on:
   pull_request:
     types: [opened, edited]
 jobs:
@@ -49,13 +49,15 @@ jobs:
 
             \`\`\`\n
             ${{ steps.fmt.outputs.stdout }}
+
+            ${{ steps.tflint.outputs.stdout }}
             \`\`\`
 
             </details>
-            
+
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*
             `;
-              
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -68,4 +70,4 @@ jobs:
         uses: ./.github/local-actions/actions/github-script
         with:
           script: |
-              core.setFailed('Terraform format or lint error, please fix.')            
+              core.setFailed('Terraform format or lint error, please fix.')
